@@ -1,0 +1,21 @@
+server:
+  port: 8080
+office:
+  filesizeMax: 5242880
+  saveRootPath: F:/OnlyOfficeFile
+  storageFolder: app_data
+  docService:
+    viewedDocs: .pdf|.djvu|.xps
+    editedDocs: .docx|.xlsx|.csv|.pptx|.txt
+    convertDocs: .docm|.dotx|.dotm|.dot|.doc|.odt|.fodt|.ott|.xlsm|.xltx|.xltm|.xlt|.xls|.ods|.fods|.ots|.pptm|.ppt|.ppsx|.ppsm|.pps|.potx|.potm|.pot|.odp|.fodp|.otp|.rtf|.mht|.html|.htm|.epub
+    timeout: 120000
+    secret: ''
+    url:
+      converter: http://192.168.26.129:6831/ConvertService.ashx
+      tempstorage: http://192.168.26.129:6831/ResourceService.ashx
+      api: http://192.168.26.129:6831/web-apps/apps/api/documents/api.js
+      preloader: http://192.168.26.129:6831/web-apps/apps/api/documents/cache-scripts.html
+      callbackServer: http://172.31.240.1:8080/callback/office  #给onlyoffice提供回调接口，同步保存文件
+logging:
+  level:
+    root: debug

@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" href="layui/css/layui.css">
+</head>
+<body>
+    <div class="layui-container">
+        <div class="layui-row">
+            <div class="layui-col-md12">
+                <button type="button" class="layui-btn" id="test1">
+                    <i class="layui-icon">&#xe67c;</i>上传图片
+                </button>
+            </div>
+            <div class="layui-col-md12">
+                <table class="layui-table">
+                    <colgroup>
+                        <col width="150">
+                        <col width="200">
+                        <col>
+                    </colgroup>
+                    <thead>
+                    <tr>
+                        <th>文件名</th>
+                        <th>创建时间</th>
+                        <th>操作</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="file :${files}">
+                        <td th:text="${file.fileName}"></td>
+                        <td th:text="${file.createTime}"></td>
+                        <td th:text="${file.editUrl}"></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="layui-col-md12">
+                <a target="_blank" href="file/edit?fileExt=docx" class="layui-btn">新建一个doc</a>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="layui/layui.all.js"></script>
+    <script src="layui/lay/modules/layer.js"></script>
+    <script>
+        var upload = layui.upload;
+        var layer = layui.layer;
+        //执行实例
+        var uploadInst = upload.render({
+            elem: '#test1' //绑定元素
+            ,url: '/file/upload' //上传接口
+            ,accept: 'file'
+            ,done: function(res){
+                //上传完毕回调
+                console.log("文件上传结果",res);
+                if (res.error){
+                    layer.msg('上传失败：' + res.error);
+                }else {
+                    layer.msg('上传成功');
+                }
+            }
+            ,error: function(){
+                //请求异常回调
+                layer.msg('上传失败，接口调用错误');
+            }
+        });
+
+    </script>
+</body>
+</html>
