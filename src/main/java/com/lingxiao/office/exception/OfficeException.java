@@ -1,4 +1,4 @@
-package com.lingxiao.office;
+package com.lingxiao.office.exception;
 
 /**
  * @author Admin
@@ -6,5 +6,8 @@ package com.lingxiao.office;
 public class OfficeException extends RuntimeException{
     public OfficeException(String message) {
         super(message);
+    }
+    public OfficeException(ExceptionEnums exceptionEnums) {
+        super(exceptionEnums.getMsg());
     }
 }

@@ -2,7 +2,7 @@ server:
   port: 8080
 office:
   filesizeMax: 5242880
-  saveRootPath: F:/OnlyOfficeFile
+  saveRootPath: D:/OnlyOfficeFile
   storageFolder: app_data
   docService:
     viewedDocs: .pdf|.djvu|.xps
@@ -19,3 +19,8 @@ office:
 logging:
   level:
     root: debug
+ftp:
+  host: localhost
+  port: 21
+  username: admin
+  password: 12345678

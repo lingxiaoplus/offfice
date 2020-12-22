@@ -3,13 +3,14 @@ package com.lingxiao.office.service.impl;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.lingxiao.office.FileType;
-import com.lingxiao.office.OfficeException;
+import com.lingxiao.office.bean.FtpConfigure;
+import com.lingxiao.office.exception.OfficeException;
 import com.lingxiao.office.bean.FileInfo;
 import com.lingxiao.office.bean.FileModel;
-import com.lingxiao.office.bean.OfficeConfigure;
 import com.lingxiao.office.service.FileService;
 import com.lingxiao.office.utils.DocumentManager;
 import com.lingxiao.office.utils.FileUtil;
+import com.lingxiao.office.utils.FtpUtil;
 import com.lingxiao.office.utils.ServiceConverter;
 import lombok.extern.slf4j.Slf4j;
 import org.primeframework.jwt.domain.JWT;
@@ -18,16 +19,15 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.Part;
 import java.io.*;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
+@EnableConfigurationProperties(value = FtpConfigure.class)
 @Service
 @Slf4j
 public class FileServiceImpl implements FileService {
@@ -37,6 +37,8 @@ public class FileServiceImpl implements FileService {
     private FileUtil fileUtil;
     @Autowired
     private ServiceConverter serviceConverter;
+    @Autowired
+    private FtpConfigure ftpConfigure;
 
     @Override
     public JSONObject upload(MultipartFile file) {
@@ -65,6 +67,8 @@ public class FileServiceImpl implements FileService {
             file.transferTo(saveFile);
             result.put("filename",fileName);
 
+            FtpUtil.getInstance(ftpConfigure).uploadFile(saveFile.getAbsolutePath(),"/");
+
             convert(fileName);
         } catch (IOException e) {
             e.printStackTrace();
@@ -84,6 +88,7 @@ public class FileServiceImpl implements FileService {
             fileInfo.setEditUrl(documentManager.GetFileUri(file.getName()));
             fileInfos.add(fileInfo);
         }
+        boolean b = FtpUtil.getInstance(ftpConfigure).readFileByFolder("/");
         return fileInfos;
     }
 
