@@ -11,7 +11,12 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.SocketException;
+import java.nio.charset.StandardCharsets;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.List;
 
+import com.lingxiao.office.bean.FileInfo;
 import com.lingxiao.office.bean.FtpConfigure;
 import com.lingxiao.office.exception.OfficeException;
 import lombok.extern.slf4j.Slf4j;
@@ -28,8 +33,10 @@ import org.apache.commons.net.ftp.FTPReply;
 public class FtpUtil {
     private static FtpUtil ftpUtil = new FtpUtil();
     private static FTPClient ftpClient;
+    private static FtpConfigure ftpConfigure;
     private FtpUtil(){}
     public static FtpUtil getInstance(FtpConfigure configure){
+        ftpConfigure = configure;
         if (ftpClient == null){
             ftpClient = ftpUtil.getFTPClient(configure.getHost(), configure.getPort(), configure.getUsername(), configure.getPassword());
         }
@@ -78,17 +85,20 @@ public class FtpUtil {
      * 关闭FTP方法
      * @return
      */
-    public boolean closeFTP(){
+    public static boolean closeFTP(){
+        if (ftpClient == null){
+            return true;
+        }
         try {
             ftpClient.logout();
         } catch (Exception e) {
-            log.error("FTP关闭失败");
+            log.error("FTP关闭失败,{}",e.getMessage());
         }finally{
             if (ftpClient.isConnected()) {
                 try {
                     ftpClient.disconnect();
                 } catch (IOException ioe) {
-                    log.error("FTP关闭失败");
+                    log.error("FTP关闭失败,{}",ioe.getMessage());
                 }
             }
         }
@@ -148,7 +158,6 @@ public class FtpUtil {
      */
     public boolean uploadFile(String filePath,String ftpPath){
         boolean flag = false;
-        InputStream in = null;
         try {
          // 设置PassiveMode传输  
             ftpClient.enterLocalPassiveMode();
@@ -160,27 +169,23 @@ public class FtpUtil {
             }
             //跳转目标目录
             ftpClient.changeWorkingDirectory(ftpPath);
-            
+
             //上传文件
             File file = new File(filePath);
-            in = new FileInputStream(file);
-            String tempName = ftpPath+File.separator+file.getName();
-            flag = ftpClient.storeFile(new String (tempName.getBytes("UTF-8"),"ISO-8859-1"),in);
-            if(flag){
-                log.info("上传成功");
-            }else{
-                log.error("上传失败");
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            log.error("上传失败");
-        }finally{
-            try {
-                in.close();
-            } catch (IOException e) {
-                // TODO Auto-generated catch block
+            try (InputStream in = new FileInputStream(file)){
+                String tempName = ftpPath+File.separator+file.getName();
+                flag = ftpClient.storeFile(new String (tempName.getBytes(StandardCharsets.UTF_8),StandardCharsets.ISO_8859_1),in);
+                if(flag){
+                    log.info("上传成功");
+                }else{
+                    log.error("上传失败");
+                }
+            }catch (IOException e){
                 e.printStackTrace();
             }
+        } catch (IOException e) {
+            e.printStackTrace();
+            log.error("上传失败");
         }
         return flag;
     }
@@ -322,8 +327,7 @@ public class FtpUtil {
      * @param folderPath 需要解析的的文件夹
      * @return
      */
-    public boolean readFileByFolder(String folderPath){
-        boolean flage = false;
+    public void readFileByFolder(String folderPath,List<FileInfo> fileInfoList){
         try {
             ftpClient.changeWorkingDirectory(new String(folderPath.getBytes("UTF-8"),"ISO-8859-1"));
             //设置FTP连接模式
@@ -334,8 +338,8 @@ public class FtpUtil {
             BufferedReader reader = null;
             for (FTPFile file : files) {
                 //判断为txt文件则解析
+                String fileName = file.getName();
                 if(file.isFile()){
-                    String fileName = file.getName();
                     if(fileName.endsWith(".txt")){
                         in = ftpClient.retrieveFileStream(new String(file.getName().getBytes("UTF-8"),"ISO-8859-1"));
                         reader = new BufferedReader(new InputStreamReader(in, "UTF-8"));
@@ -356,16 +360,20 @@ public class FtpUtil {
                         //System.out.println(buffer.toString());
                     }
                 }
+                FileInfo fileInfo = new FileInfo();
+                fileInfo.setFileName(fileName);
+                fileInfo.setEditUrl(ftpConfigure.getBaseUrl().concat(folderPath).concat(fileName));
+                fileInfo.setCreateTime(new SimpleDateFormat("yyyy-MM-dd").format(file.getTimestamp().getTime()));
+                fileInfoList.add(fileInfo);
                 //判断为文件夹，递归
                 if(file.isDirectory()){
                     String path = folderPath+File.separator+file.getName();
-                    readFileByFolder(path);
+                    readFileByFolder(path,fileInfoList);
                 }
             }
         } catch (Exception e) {
             e.printStackTrace();
             log.error("文件解析失败");
         }
-        return flage;
     }
 }

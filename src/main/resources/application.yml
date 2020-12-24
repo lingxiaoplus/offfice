@@ -2,7 +2,7 @@ server:
   port: 8080
 office:
   filesizeMax: 5242880
-  saveRootPath: D:/OnlyOfficeFile
+  saveRootPath: F:/OnlyOfficeFile
   storageFolder: app_data
   docService:
     viewedDocs: .pdf|.djvu|.xps
@@ -24,3 +24,4 @@ ftp:
   port: 21
   username: admin
   password: 12345678
+  baseUrl: http://file.lingxiao.com  # 文件地址前缀

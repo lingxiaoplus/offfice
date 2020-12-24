@@ -19,6 +19,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.annotation.PreDestroy;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
@@ -26,6 +27,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
+import java.util.stream.Collectors;
 
 @EnableConfigurationProperties(value = FtpConfigure.class)
 @Service
@@ -68,7 +70,6 @@ public class FileServiceImpl implements FileService {
             result.put("filename",fileName);
 
             FtpUtil.getInstance(ftpConfigure).uploadFile(saveFile.getAbsolutePath(),"/");
-
             convert(fileName);
         } catch (IOException e) {
             e.printStackTrace();
@@ -79,7 +80,7 @@ public class FileServiceImpl implements FileService {
 
     @Override
     public List<FileInfo> getUploadFiles(){
-        File[] storedFiles = documentManager.getStoredFiles();
+        /*File[] storedFiles = documentManager.getStoredFiles();
         List<FileInfo> fileInfos = new ArrayList<>();
         for (File file : storedFiles) {
             FileInfo fileInfo = new FileInfo();
@@ -87,9 +88,10 @@ public class FileServiceImpl implements FileService {
             fileInfo.setCreateTime(fileUtil.getFileCreateTime(file.getAbsolutePath()));
             fileInfo.setEditUrl(documentManager.GetFileUri(file.getName()));
             fileInfos.add(fileInfo);
-        }
-        boolean b = FtpUtil.getInstance(ftpConfigure).readFileByFolder("/");
-        return fileInfos;
+        }*/
+        List<FileInfo> fileInfoList = new ArrayList<>();
+        FtpUtil.getInstance(ftpConfigure).readFileByFolder("/",fileInfoList);
+        return fileInfoList;
     }
 
 
@@ -264,5 +266,10 @@ public class FileServiceImpl implements FileService {
             e.printStackTrace();
             throw new OfficeException("保存本地文件失败");
         }
+    }
+
+    @PreDestroy
+    public void onDestory(){
+        FtpUtil.closeFTP();
     }
 }
