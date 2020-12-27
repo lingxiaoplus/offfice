@@ -116,7 +116,6 @@ public class FtpUtil {
     public boolean downLoadFTP(String filePath, String fileName, String downPath) {
         // 默认失败
         boolean flag = false;
-
         try {
             // 跳转到文件目录
             ftpClient.changeWorkingDirectory(filePath);
@@ -151,13 +150,47 @@ public class FtpUtil {
     }
 
     /**
+     * 获取文件url
+     * @param filePath  路径
+     * @param fileName 文件名
+     * @return
+     */
+    public String getFileUrl(String filePath, String fileName){
+        String fileUrl = "";
+        try {
+            // 跳转到文件目录
+            ftpClient.changeWorkingDirectory(filePath);
+            // 获取目录下文件集合
+            ftpClient.enterLocalPassiveMode();
+            FTPFile[] files = ftpClient.listFiles();
+            for (FTPFile file : files) {
+                // 取得指定文件并下载
+                if (file.getName().equals(fileName)) {
+                    fileUrl = ftpConfigure.getBaseUrl().concat(filePath).concat("/").concat(fileName);
+                    break;
+                }
+                //判断为文件夹，递归
+                /*if(file.isDirectory()){
+                    String path = filePath + file.getName() + "/";
+                    getFileUrl(path,fileName);
+                }*/
+            }
+
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return fileUrl;
+    }
+
+    /**
      * FTP文件上传工具类
      * @param filePath
      * @param ftpPath
      * @return
      */
-    public boolean uploadFile(String filePath,String ftpPath){
-        boolean flag = false;
+    public String uploadFile(String filePath,String ftpPath){
+        String fileUrl =  "";
         try {
          // 设置PassiveMode传输  
             ftpClient.enterLocalPassiveMode();
@@ -174,9 +207,10 @@ public class FtpUtil {
             File file = new File(filePath);
             try (InputStream in = new FileInputStream(file)){
                 String tempName = ftpPath+File.separator+file.getName();
-                flag = ftpClient.storeFile(new String (tempName.getBytes(StandardCharsets.UTF_8),StandardCharsets.ISO_8859_1),in);
+                boolean flag = ftpClient.storeFile(new String (tempName.getBytes(StandardCharsets.UTF_8),StandardCharsets.ISO_8859_1),in);
                 if(flag){
                     log.info("上传成功");
+                    fileUrl = ftpConfigure.getBaseUrl().concat(ftpPath).concat("/").concat(file.getName());
                 }else{
                     log.error("上传失败");
                 }
@@ -187,7 +221,7 @@ public class FtpUtil {
             e.printStackTrace();
             log.error("上传失败");
         }
-        return flag;
+        return fileUrl;
     }
     
     /**
@@ -333,47 +367,50 @@ public class FtpUtil {
             //设置FTP连接模式
             ftpClient.enterLocalPassiveMode();
             //获取指定目录下文件文件对象集合
-            FTPFile files[] = ftpClient.listFiles();
-            InputStream in = null;
-            BufferedReader reader = null;
+            FTPFile[] files = ftpClient.listFiles();
             for (FTPFile file : files) {
                 //判断为txt文件则解析
                 String fileName = file.getName();
                 if(file.isFile()){
-                    if(fileName.endsWith(".txt")){
-                        in = ftpClient.retrieveFileStream(new String(file.getName().getBytes("UTF-8"),"ISO-8859-1"));
-                        reader = new BufferedReader(new InputStreamReader(in, "UTF-8"));
-                        String temp;
-                        StringBuffer buffer = new StringBuffer();
-                        while((temp = reader.readLine())!=null){
-                            buffer.append(temp);
-                        }
-                        if(reader!=null){
-                            reader.close();
-                        }
-                        if(in!=null){
-                            in.close();
-                        }
-                        //ftp.retrieveFileStream使用了流，需要释放一下，不然会返回空指针
-                        ftpClient.completePendingCommand();
-                        //这里就把一个txt文件完整解析成了个字符串，就可以调用实际需要操作的方法
-                        //System.out.println(buffer.toString());
-                    }
+                    FileInfo fileInfo = new FileInfo();
+                    fileInfo.setFileName(fileName);
+                    fileInfo.setEditUrl(ftpConfigure.getBaseUrl().concat(folderPath).concat(fileName));
+                    fileInfo.setCreateTime(new SimpleDateFormat("yyyy-MM-dd").format(file.getTimestamp().getTime()));
+                    fileInfoList.add(fileInfo);
                 }
-                FileInfo fileInfo = new FileInfo();
-                fileInfo.setFileName(fileName);
-                fileInfo.setEditUrl(ftpConfigure.getBaseUrl().concat(folderPath).concat(fileName));
-                fileInfo.setCreateTime(new SimpleDateFormat("yyyy-MM-dd").format(file.getTimestamp().getTime()));
-                fileInfoList.add(fileInfo);
                 //判断为文件夹，递归
                 if(file.isDirectory()){
-                    String path = folderPath+File.separator+file.getName();
+                    String path = folderPath + file.getName() + "/";
                     readFileByFolder(path,fileInfoList);
                 }
             }
-        } catch (Exception e) {
+        } catch (IOException e) {
             e.printStackTrace();
             log.error("文件解析失败");
+        }
+    }
+
+    /**
+     * 解析txt文本
+     */
+    private void analysisTxt(FTPFile file){
+        String fileName = file.getName();
+        if(!file.isFile() && !fileName.endsWith(".txt")){
+            return;
+        }
+        try (InputStream in = ftpClient.retrieveFileStream(new String(file.getName().getBytes(StandardCharsets.UTF_8),StandardCharsets.ISO_8859_1 ));
+             BufferedReader reader = new BufferedReader(new InputStreamReader(in, StandardCharsets.UTF_8));){
+            String temp;
+            StringBuilder builder = new StringBuilder();
+            while((temp = reader.readLine())!=null){
+                builder.append(temp);
+            }
+            //ftp.retrieveFileStream使用了流，需要释放一下，不然会返回空指针
+            ftpClient.completePendingCommand();
+            //这里就把一个txt文件完整解析成了个字符串，就可以调用实际需要操作的方法
+            log.debug("txt文件：{}",builder.toString());
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 }

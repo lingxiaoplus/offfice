@@ -110,7 +110,7 @@ public class DocumentManager {
         return name;
     }
 
-    public String CreateDemo(String fileExt) throws Exception {
+    public File createDemo(String fileExt) throws Exception {
         String demoName = "sample." + fileExt;
         String fileName = GetCorrectName(demoName);
 
@@ -126,7 +126,7 @@ public class DocumentManager {
             }
             out.flush();
         }
-        return fileName;
+        return file;
     }
 
     public String GetFileUri(String fileName) {
@@ -179,7 +179,7 @@ public class DocumentManager {
 
     public String CreateToken(Map<String, Object> payloadClaims) {
         try {
-            Signer signer = HMACSigner.newSHA256Signer(GetTokenSecret());
+            Signer signer = HMACSigner.newSHA256Signer(officeConfigure.getDocService().getSecret());
             JWT jwt = new JWT();
             for (String key : payloadClaims.keySet())
             {
@@ -194,7 +194,7 @@ public class DocumentManager {
 
     public JWT ReadToken(String token) {
         try {
-            Verifier verifier = HMACVerifier.newVerifier(GetTokenSecret());
+            Verifier verifier = HMACVerifier.newVerifier(officeConfigure.getDocService().getSecret());
             return JWT.getDecoder().decode(token, verifier);
         }
         catch (Exception exception) {
@@ -202,13 +202,9 @@ public class DocumentManager {
         }
     }
 
-    public Boolean TokenEnabled() {
-        String secret = GetTokenSecret();
+    public Boolean tokenEnabled() {
+        String secret = officeConfigure.getDocService().getSecret();
         return secret != null && !secret.isEmpty();
-    }
-
-    private String GetTokenSecret() {
-        return officeConfigure.getDocService().getSecret();
     }
 
     public File[] getStoredFiles() {

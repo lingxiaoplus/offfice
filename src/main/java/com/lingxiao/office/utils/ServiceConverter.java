@@ -3,6 +3,10 @@ package com.lingxiao.office.utils;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.lingxiao.office.bean.OfficeConfigure;
+import com.lingxiao.office.exception.OfficeException;
+import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
+import okhttp3.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.stereotype.Component;
@@ -18,8 +22,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.nio.charset.StandardCharsets;
+import java.util.concurrent.TimeUnit;
 
 @Component
+@Slf4j
 @EnableConfigurationProperties(value = OfficeConfigure.class)
 public class ServiceConverter {
     @Autowired
@@ -30,6 +36,8 @@ public class ServiceConverter {
     private DocumentManager documentManager;
     private int ConvertTimeout = 120000;
     private String DocumentConverterUrl;
+    @Autowired
+    private HttpUtil httpUtil;
 
     @PostConstruct
     public void init(){
@@ -62,45 +70,23 @@ public class ServiceConverter {
         body.filetype = fromExtension.replace(".", "");
         body.title = title;
         body.key = documentRevisionId;
-        if (isAsync){
-            body.async = true;
-        }
-        //Gson gson = new Gson();
-        String bodyString = JSON.toJSONString(body);
+        body.async = isAsync;
 
-        byte[] bodyByte = bodyString.getBytes(StandardCharsets.UTF_8);
-
-        URL url = new URL(DocumentConverterUrl);
-        java.net.HttpURLConnection connection = (java.net.HttpURLConnection) url.openConnection();
-        connection.setRequestMethod("POST");
-        connection.setDoOutput(true);
-        connection.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
-        connection.setFixedLengthStreamingMode(bodyByte.length);
-        connection.setRequestProperty("Accept", "application/json");
-        connection.setConnectTimeout(ConvertTimeout);
-
-        if (documentManager.TokenEnabled()) {
+        Map<String,String> headerMap = new HashMap<>();
+        if (documentManager.tokenEnabled()) {
             Map<String, Object> map = new HashMap<>();
             map.put("payload", body);
             String token = documentManager.CreateToken(map);
-            connection.setRequestProperty("Authorization", "Bearer " + token);
+            headerMap.put("Authorization","Bearer " + token);
         }
-
-        connection.connect();
-        try (OutputStream os = connection.getOutputStream()) {
-            os.write(bodyByte);
+        headerMap.put("Accept", "application/json");
+        Response response = httpUtil.addHeader(headerMap).doPost(DocumentConverterUrl, body);
+        if (response.isSuccessful()){
+            return getResponseUri(response.body().string());
+        }else {
+            log.info("请求office转换服务失败, {}",response.code());
+            throw new OfficeException("请求office转换服务失败");
         }
-
-        InputStream stream = connection.getInputStream();
-
-        if (stream == null){
-            throw new Exception("Could not get an answer");
-        }
-        String jsonString = ConvertStreamToString(stream);
-
-        connection.disconnect();
-
-        return GetResponseUri(jsonString);
     }
 
     public String GenerateRevisionId(String expectedKey) {
@@ -112,12 +98,10 @@ public class ServiceConverter {
         return key.substring(0, Math.min(key.length(), 20));
     }
 
-    private void ProcessConvertServiceResponceError(int errorCode) throws Exception {
+    private void processConvertServiceResponseError(int errorCode) {
         String errorMessage = "";
         String errorMessageTemplate = "Error occurred in the ConvertService: ";
-
-        switch (errorCode)
-        {
+        switch (errorCode) {
             case -8:
                 errorMessage = errorMessageTemplate + "Error document VKey";
                 break;
@@ -148,44 +132,43 @@ public class ServiceConverter {
                 errorMessage = "ErrorCode = " + errorCode;
                 break;
         }
-
-        throw new Exception(errorMessage);
+        throw new OfficeException(errorMessage);
     }
 
-    private String GetResponseUri(String jsonString) throws Exception {
-        JSONObject jsonObj = ConvertStringToJSON(jsonString);
+    @Data
+    private static class ConvertResponse{
+        private Integer error;
+        private Integer percent;
+        private Boolean endConvert;
+        private String fileUrl;
+    }
 
-        Object error = jsonObj.get("error");
-        if (error != null){
-            ProcessConvertServiceResponceError(Math.toIntExact((long)error));
+    private String getResponseUri(String jsonString) {
+        log.debug("获取到转换结果的response: {}",jsonString);
+        //JSONObject jsonObj = ConvertStringToJSON(jsonString);
+        ConvertResponse convertResponse = JSON.parseObject(jsonString, ConvertResponse.class);
+        if (convertResponse.getError() != null){
+            processConvertServiceResponseError(convertResponse.getError());
         }
-        Boolean isEndConvert = (Boolean) jsonObj.get("endConvert");
-
-        Long resultPercent = 0l;
+        int resultPercent = 0;
         String responseUri = null;
-
-        if (isEndConvert)
-        {
-            resultPercent = 100l;
-            responseUri = (String) jsonObj.get("fileUrl");
+        if (convertResponse.getEndConvert()) {
+            resultPercent = 100;
+            responseUri = convertResponse.getFileUrl();
+        } else {
+            resultPercent = convertResponse.getPercent();
+            resultPercent = resultPercent >= 100 ? 99 : resultPercent;
         }
-        else
-        {
-            resultPercent = (Long) jsonObj.get("percent");
-            resultPercent = resultPercent >= 100l ? 99l : resultPercent;
-        }
-
-        return resultPercent >= 100l ? responseUri : "";
+        return resultPercent >= 100 ? responseUri : "";
     }
 
-    private String ConvertStreamToString(InputStream stream) throws IOException {
+    private String convertStreamToString(InputStream stream) throws IOException {
         InputStreamReader inputStreamReader = new InputStreamReader(stream);
         StringBuilder stringBuilder = new StringBuilder();
         BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
         String line = bufferedReader.readLine();
 
-        while (line != null)
-        {
+        while (line != null) {
             stringBuilder.append(line);
             line = bufferedReader.readLine();
         }

@@ -30,13 +30,24 @@ public class FileController {
     @Autowired
     private FileService fileService;
 
-    @RequestMapping
+    /*@RequestMapping
     public ModelAndView index(){
         ModelAndView modelAndView = new ModelAndView("index");
         log.debug("配置信息： {}",officeConfigure.toString());
         List<FileInfo> uploadFiles = fileService.getUploadFiles();
         modelAndView.addObject("files",uploadFiles);
         return modelAndView;
+    }*/
+
+    @GetMapping("file/list")
+    @ResponseBody
+    public ResponseEntity<JSONObject> getFileList(){
+        JSONObject result = new JSONObject();
+        List<FileInfo> files = fileService.getUploadFiles();
+        result.put("code",0);
+        result.put("count",files.size());
+        result.put("data",files);
+        return ResponseEntity.ok(result);
     }
 
     @ResponseBody

@@ -50,7 +50,7 @@ public class CallbackController {
 	                6 - document is being edited, but the current document state is saved,
 	                7 - error has occurred while force saving the document.
 	             * */
-            if (status == 2) {
+            if (status == 2 || status == 6) {
                 /*
                  * 当我们关闭编辑窗口后，十秒钟左右onlyoffice会将它存储的我们的编辑后的文件，，此时status = 2，通过request发给我们，我们需要做的就是接收到文件然后回写该文件。
                  * */
@@ -69,7 +69,7 @@ public class CallbackController {
              * status = 1，我们给onlyoffice的服务返回{"error":"0"}的信息，这样onlyoffice会认为回调接口是没问题的，这样就可以在线编辑文档了，否则的话会弹出窗口说明
              * */
             //writer = response.getWriter();
-            if(status == 6) {
+            if(status == 0 || status == 3) {
                 log.error("保存失败: {}",jsonObj);
                 result.put("error",1);
                 //writer.write("{\"error\":1}");

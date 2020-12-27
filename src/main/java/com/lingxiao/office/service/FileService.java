@@ -18,7 +18,7 @@ public interface FileService {
 
     List<FileInfo> getUploadFiles();
 
-    void convert(String fileName);
+    void convert(String fileName,String fileUrl);
 
     void track(HttpServletRequest request, HttpServletResponse response, PrintWriter writer);
 

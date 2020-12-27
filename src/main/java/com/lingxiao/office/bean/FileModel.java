@@ -3,6 +3,7 @@ package com.lingxiao.office.bean;
 import com.lingxiao.office.utils.DocumentManager;
 import com.lingxiao.office.utils.FileUtil;
 import com.lingxiao.office.utils.ServiceConverter;
+import lombok.Data;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -10,51 +11,21 @@ import java.util.Map;
 /**
  * @author Admin
  */
+@Data
 public class FileModel {
-    private FileUtil fileUtil;
-    private DocumentManager documentManager;
-    private ServiceConverter serviceConverter;
-    public String type = "desktop";
-    public String documentType;
-    public Document document;
-    public EditorConfig editorConfig;
+
+    private String type = "desktop";
+    private String documentType;
+    private Document document;
+    private EditorConfig editorConfig;
     public String token;
-
-    public FileModel(FileUtil fileUtil, DocumentManager documentManager, ServiceConverter serviceConverter,String fileName) {
-        if (fileName == null) {
-            fileName = "";
-        }
-        this.fileUtil = fileUtil;
-        this.documentManager = documentManager;
-        this.serviceConverter = serviceConverter;
-
-        fileName = fileName.trim();
-        documentType = fileUtil.getFileType(fileName).toString().toLowerCase();
-
-        document = new Document();
-        document.title = fileName;
-        document.url = documentManager.GetFileUri(fileName);
-        document.fileType = fileUtil.getFileExtension(fileName).replace(".", "");
-        String userId = documentManager.CurUserHostAddress(null);
-        document.key = serviceConverter.GenerateRevisionId(userId + "/" + fileName);
-
-        editorConfig = new EditorConfig();
-        if (!documentManager.getEditedExts().contains(fileUtil.getFileExtension(fileName)))
-            editorConfig.mode = "view";
-        editorConfig.callbackUrl = documentManager.getCallbackUrl(fileName);
-        editorConfig.user.id = userId;
-
-        editorConfig.customization.goback.url = documentManager.GetServerUrl() + "/IndexServlet";
-    }
-
-
 
     public void InitDesktop() {
         type = "embedded";
         editorConfig.InitDesktop(document.url);
     }
 
-    public void BuildToken() {
+    public void buildToken(DocumentManager documentManager) {
         Map<String, Object> map = new HashMap<>();
         map.put("type", type);
         map.put("documentType", documentType);
@@ -63,14 +34,14 @@ public class FileModel {
         token = documentManager.CreateToken(map);
     }
 
-    public class Document {
+    public static class Document {
         public String title;
         public String url;
         public String fileType;
         public String key;
     }
 
-    public class EditorConfig {
+    public static class EditorConfig {
         public String mode = "edit";
         public String callbackUrl;
         public User user;

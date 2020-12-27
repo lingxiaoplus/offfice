@@ -15,7 +15,7 @@ office:
       tempstorage: http://192.168.26.129:6831/ResourceService.ashx
       api: http://192.168.26.129:6831/web-apps/apps/api/documents/api.js
       preloader: http://192.168.26.129:6831/web-apps/apps/api/documents/cache-scripts.html
-      callbackServer: http://172.31.240.1:8080/callback/office  #给onlyoffice提供回调接口，同步保存文件
+      callbackServer: http://192.168.26.1:8080/callback/office  #给onlyoffice提供回调接口，同步保存文件
 logging:
   level:
     root: debug
@@ -25,3 +25,8 @@ ftp:
   username: admin
   password: 12345678
   baseUrl: http://file.lingxiao.com  # 文件地址前缀
+spring:
+  servlet:
+    multipart:
+      max-file-size: 50MB
+      max-request-size: 100MB
