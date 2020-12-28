@@ -1,29 +1,28 @@
 package com.lingxiao.office.utils;
 
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
 import com.lingxiao.office.bean.OfficeConfigure;
 import com.lingxiao.office.exception.OfficeException;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
-import java.nio.charset.StandardCharsets;
-import java.util.concurrent.TimeUnit;
 
+/**
+ * @author  renml
+ * @date 2020-12-28
+ */
 @Component
 @Slf4j
 @EnableConfigurationProperties(value = OfficeConfigure.class)
@@ -34,16 +33,9 @@ public class ServiceConverter {
     private FileUtil fileUtil;
     @Autowired
     private DocumentManager documentManager;
-    private int ConvertTimeout = 120000;
-    private String DocumentConverterUrl;
     @Autowired
     private HttpUtil httpUtil;
 
-    @PostConstruct
-    public void init(){
-        DocumentConverterUrl = officeConfigure.getDocService().getUrl().getConverter();
-        ConvertTimeout = officeConfigure.getDocService().getTimeout();
-    }
     public static class ConvertBody {
         public String url;
         public String outputtype;
@@ -54,14 +46,13 @@ public class ServiceConverter {
         public String token;
     }
 
-    public String GetConvertedUri(String documentUri, String fromExtension, String toExtension, String documentRevisionId, Boolean isAsync) throws Exception {
-        fromExtension = fromExtension == null || fromExtension.isEmpty() ? fileUtil.getFileExtension(documentUri) : fromExtension;
+    public String getConvertedUri(String documentUri, String fromExtension, String toExtension, String documentRevisionId, Boolean isAsync) throws Exception {
+        fromExtension = StringUtils.isBlank(fromExtension) ? fileUtil.getFileExtension(documentUri) : fromExtension;
 
         String title = fileUtil.getFileName(documentUri);
-        title = title == null || title.isEmpty() ? UUID.randomUUID().toString() : title;
+        title = StringUtils.isBlank(title) ? UUID.randomUUID().toString() : title;
 
-        documentRevisionId = documentRevisionId == null || documentRevisionId.isEmpty() ? documentUri : documentRevisionId;
-
+        documentRevisionId = StringUtils.isBlank(documentRevisionId) ? documentUri : documentRevisionId;
         documentRevisionId = GenerateRevisionId(documentRevisionId);
 
         ConvertBody body = new ConvertBody();
@@ -80,7 +71,7 @@ public class ServiceConverter {
             headerMap.put("Authorization","Bearer " + token);
         }
         headerMap.put("Accept", "application/json");
-        Response response = httpUtil.addHeader(headerMap).doPost(DocumentConverterUrl, body);
+        Response response = httpUtil.addHeader(headerMap).doPost(officeConfigure.getDocService().getUrl().getConverter(), body);
         if (response.isSuccessful()){
             return getResponseUri(response.body().string());
         }else {
@@ -94,7 +85,6 @@ public class ServiceConverter {
             expectedKey = Integer.toString(expectedKey.hashCode());
         }
         String key = expectedKey.replace("[^0-9-.a-zA-Z_=]", "_");
-
         return key.substring(0, Math.min(key.length(), 20));
     }
 
@@ -172,11 +162,6 @@ public class ServiceConverter {
             stringBuilder.append(line);
             line = bufferedReader.readLine();
         }
-        String result = stringBuilder.toString();
-        return result;
-    }
-
-    private JSONObject ConvertStringToJSON(String jsonString) {
-        return JSON.parseObject(jsonString);
+        return stringBuilder.toString();
     }
 }

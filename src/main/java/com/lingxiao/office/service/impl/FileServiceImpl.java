@@ -26,8 +26,11 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.net.URL;
 import java.util.*;
-import java.util.stream.Collectors;
 
+/**
+ * @author  renml
+ * @date 2020-12-28
+ */
 @EnableConfigurationProperties(value = FtpConfigure.class)
 @Service
 @Slf4j
@@ -103,7 +106,7 @@ public class FileServiceImpl implements FileService {
         log.debug("开始文件转换: {}",fileUrl);
         String key = serviceConverter.GenerateRevisionId(fileUrl);
         try {
-            String newFileUri = serviceConverter.GetConvertedUri(fileUrl, fileExt, internalFileExt, key, true);
+            String newFileUri = serviceConverter.getConvertedUri(fileUrl, fileExt, internalFileExt, key, true);
             if (StringUtils.isBlank(newFileUri)) {
                 throw new OfficeException("fileName: " + fileName + " uri is empty");
             }
