@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Only Office</title>
+    <link rel="stylesheet" href="layui/css/layui.css">
+</head>
+<body>
+    <div class="layui-container">
+        <div class="layui-row">
+            <div class="layui-col-md12">
+                <table class="layui-table" lay-data="{ url:'/file/list', page:false, id:'idTest'}" lay-filter="demo">
+                    <thead>
+                    <tr>
+                        <th lay-data="{field:'name', width:300, sort: true, fixed: true}">文件名</th>
+                        <th lay-data="{field:'time', width:200}">创建时间</th>
+                        <th lay-data="{field:'path', width:300, sort: true}">地址</th>
+                        <th lay-data="{fixed: 'right', width:178, align:'center', toolbar: '#barDemo'}"></th>
+                    </tr>
+                    </thead>
+                </table>
+
+            </div>
+            <div class="layui-col-md12">
+                <button type="button" class="layui-btn" id="test1">
+                    <i class="layui-icon">&#xe67c;</i>上传文件
+                </button>
+                <a target="_blank" href="file/createSimple?fileType=docx" class="layui-btn">新建一个Document</a>
+                <a target="_blank" href="file/createSimple?fileType=xlsx" class="layui-btn">新建一个Spreadsheet</a>
+                <a target="_blank" href="file/createSimple?fileType=pptx" class="layui-btn">新建一个Presentation</a>
+            </div>
+        </div>
+
+    </div>
+    <script type="text/html" id="barDemo">
+        <a class="layui-btn layui-btn-primary layui-btn-xs" lay-event="detail">查看</a>
+        <a class="layui-btn layui-btn-xs" lay-event="edit">编辑</a>
+        <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
+    </script>
+    <script src="layui/layui.all.js"></script>
+    <script src="layui/lay/modules/layer.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script>
+        var upload = layui.upload;
+        var layer = layui.layer;
+        var table = layui.table;
+
+        var timer = null;
+        var checkConvert = function (fileName,fileUrl) {
+            if (timer !== null) {
+                clearTimeout(timer);
+            }
+            timer = setTimeout(function () {
+                axios.get('/file/convert?fileName='+fileName + "&fileUrl=" + fileUrl)
+                    .then(function (response) {
+                        console.log('convert结果',response);
+                        if (response.data.code !== 200){
+                            layer.msg('convert失败：' + response.data.message);
+                        }else{
+                            layer.msg('convert成功: ' + response.data.data);
+                            if (response.data.data.progress !== 100){
+                                checkConvert(fileName,fileUrl);
+                            }else{
+                                let convertUrl = response.data.data.fileUrl;
+                                let convertName = response.data.data.fileName;
+                                layer.confirm('是否跳转查看', function(index){
+                                    let tempwindow = window.open('_blank');
+                                    tempwindow.location.href = "file/edit?fileName=" + convertName + "&fileUrl=" + convertUrl;
+                                    layer.close(index);
+                                });
+
+                            }
+                        }
+                    })
+                    .catch(function (error) {
+                        console.log('convert失败',error);
+                    });
+            },1000);
+        }
+        //执行实例
+        var uploadInst = upload.render({
+            elem: '#test1' //绑定元素
+            ,url: '/file/upload' //上传接口
+            ,accept: 'file'
+            ,done: function(res){
+                //上传完毕回调
+                console.log("文件上传结果",res);
+                if (res.code !== 200){
+                    layer.msg('上传失败：' + res.message);
+                }else {
+                    layer.msg('上传成功');
+                    // 为给定 ID 的 user 创建请求
+                    checkConvert(res.data.fileName,res.data.fileUrl);
+                }
+            }
+            ,error: function(){
+                //请求异常回调
+                layer.msg('上传失败，接口调用错误');
+            }
+        });
+
+        //监听工具条
+        table.on('tool(demo)', function(obj){
+            var data = obj.data;
+            var tempwindow = window.open('_blank');
+            if(obj.event === 'detail'){
+                layer.msg('ID：'+ data.name + ' 的查看操作');
+                tempwindow.location.href = "file/edit?editable=false&fileName=" + data.name + "&fileUrl=" + data.path;
+            } else if(obj.event === 'del'){
+                layer.confirm('真的删除行么', function(index){
+                    obj.del();
+                    layer.close(index);
+                });
+            } else if(obj.event === 'edit'){
+                tempwindow.location.href = "file/edit?editable=true&fileName=" + data.name + "&fileUrl=" + data.path;
+            }
+        });
+
+        table.render({
+            elem: '#demo'
+            ,url: ''
+            ,response: {
+                statusCode: 200 //规定成功的状态码，默认：0
+                ,msgName: 'hint' //规定状态信息的字段名称，默认：msg
+                ,countName: 'count' //规定数据总数的字段名称，默认：count
+                ,dataName: 'data' //规定数据列表的字段名称，默认：data
+            }
+            //,…… //其他参数
+        });
+
+    </script>
+</body>
+</html>
