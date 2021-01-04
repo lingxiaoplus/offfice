@@ -4,6 +4,7 @@ office:
   filesizeMax: 5242880
   saveRootPath: F:/OnlyOfficeFile
   storageFolder: app_data
+  baseUrl: http://localhost:6831
   docService:
     viewedDocs: .pdf|.djvu|.xps
     editedDocs: .docx|.xlsx|.csv|.pptx|.txt
@@ -11,22 +12,30 @@ office:
     timeout: 120000
     secret: ''
     url:
-      converter: http://192.168.26.129:6831/ConvertService.ashx
-      tempstorage: http://192.168.26.129:6831/ResourceService.ashx
-      api: http://192.168.26.129:6831/web-apps/apps/api/documents/api.js
-      preloader: http://192.168.26.129:6831/web-apps/apps/api/documents/cache-scripts.html
+      converter: ${office.baseUrl}/ConvertService.ashx
+      tempstorage: ${office.baseUrl}/ResourceService.ashx
+      api: ${office.baseUrl}/web-apps/apps/api/documents/api.js
+      preloader: ${office.baseUrl}/web-apps/apps/api/documents/cache-scripts.html
       callbackServer: http://192.168.26.1:8080/callback/office  #给onlyoffice提供回调接口，同步保存文件
 logging:
   level:
     root: debug
 ftp:
-  host: localhost
+  open: true
+  host: 192.168.26.1
   port: 21
-  username: admin
+  username: lingxiao
   password: 12345678
   baseUrl: http://file.lingxiao.com  # 文件地址前缀
+  uploadPath: "/temp"
 spring:
   servlet:
     multipart:
       max-file-size: 50MB
       max-request-size: 100MB
+oss:
+  accessKey: V_ZleIlYzHPjekmAuRvV_MDkk69VZWM12f # 设置好账号的ACCESS_KEY和SECRET_KEY
+  secretKey: U8SndxcceqMZGIKPL3gEPkYRNrP75cJlOH
+  bucketName: function  # 要上传的UrlAccessDecisionManager空间
+  prefixImg: http://img.liniao.top/
+  rootPath: /OnlyOffice

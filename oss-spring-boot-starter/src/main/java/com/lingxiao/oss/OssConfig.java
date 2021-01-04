@@ -20,7 +20,7 @@ import org.springframework.context.annotation.Configuration;
  **/
 @Configuration
 @EnableConfigurationProperties(OssProperties.class)
-@ConditionalOnProperty(prefix = "oss", name = "isopen", havingValue = "true")
+@ConditionalOnProperty(prefix = "oss", name = "open", havingValue = "true")
 public class OssConfig {
     @Autowired
     private OssProperties ossProperties;

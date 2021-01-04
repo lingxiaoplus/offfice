@@ -1,1 +1,2 @@
-org.springframework.boot.autoconfigure.EnableAutoConfiguration=com.lingxiao.oss.OssConfig
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+  com.lingxiao.oss.OssConfig,com.lingxiao.oss.FtpConfig

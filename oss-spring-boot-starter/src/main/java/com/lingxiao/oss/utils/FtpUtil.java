@@ -309,34 +309,33 @@ public class FtpUtil {
     
     /**
      * 删除FTP上指定文件夹下文件及其子文件方法，添加了对中文目录的支持
-     * @param ftp FTPClient对象
-     * @param FtpFolder 需要删除的文件夹
+     * @param ftpFolder 需要删除的文件夹
      * @return
      */
-    public boolean deleteByFolder(FTPClient ftp,String FtpFolder){
+    public boolean deleteByFolder(String ftpFolder){
         boolean flag = false;
         try {
-            ftp.changeWorkingDirectory(new String(FtpFolder.getBytes("UTF-8"),"ISO-8859-1"));
-            ftp.enterLocalPassiveMode();
-            FTPFile[] files = ftp.listFiles();
+            ftpClient.changeWorkingDirectory(new String(ftpFolder.getBytes(StandardCharsets.UTF_8),StandardCharsets.ISO_8859_1));
+            ftpClient.enterLocalPassiveMode();
+            FTPFile[] files = ftpClient.listFiles();
             for (FTPFile file : files) {
                 //判断为文件则删除
                 if(file.isFile()){
-                    ftp.deleteFile(new String(file.getName().getBytes("UTF-8"),"ISO-8859-1"));
+                    ftpClient.deleteFile(new String(file.getName().getBytes(StandardCharsets.UTF_8),StandardCharsets.ISO_8859_1));
                 }
                 //判断是文件夹
                 if(file.isDirectory()){
-                    String childPath = FtpFolder + File.separator+file.getName();
+                    String childPath = ftpFolder + File.separator+file.getName();
                     //递归删除子文件夹
-                    deleteByFolder(ftp,childPath);
+                    deleteByFolder(childPath);
                 }
             }
             //循环完成后删除文件夹
-            flag = ftp.removeDirectory(new String(FtpFolder.getBytes("UTF-8"),"ISO-8859-1"));
+            flag = ftpClient.removeDirectory(new String(ftpFolder.getBytes(StandardCharsets.UTF_8),StandardCharsets.ISO_8859_1));
             if(flag){
-                log.info(FtpFolder+"文件夹删除成功");
+                log.info(ftpFolder+"文件夹删除成功");
             }else{
-                log.error(FtpFolder+"文件夹删除成功");
+                log.error(ftpFolder+"文件夹删除成功");
             }
             
         } catch (Exception e) {

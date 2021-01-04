@@ -17,4 +17,5 @@ public class FtpConfigure {
     private String username;
     private String password;
     private String baseUrl;
+    private String uploadPath;
 }
