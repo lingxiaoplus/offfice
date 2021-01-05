@@ -70,7 +70,7 @@ public class ServiceConverter {
         if (documentManager.tokenEnabled()) {
             Map<String, Object> map = new HashMap<>();
             map.put("payload", body);
-            String token = documentManager.CreateToken(map);
+            String token = documentManager.createToken(map);
             headerMap.put("Authorization","Bearer " + token);
         }
         headerMap.put("Accept", "application/json");

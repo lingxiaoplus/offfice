@@ -41,12 +41,12 @@ public interface FileService {
     FileModel createEmptyFile(String fileType);
 
     /**
-     * 编辑文件
-     * @param fileName
-     * @param fileUrl
+     * 创建文件的配置信息： 比如这个文件是否可编辑、可保存
+     * @param fileName  文件名
+     * @param fileUrl  文件链接
      * @return
      */
-    FileModel editFile(String fileName,String fileUrl);
+    FileModel createFileModel(String fileName,String fileUrl);
 
     /**
      * 同步保存only office的文件到本地

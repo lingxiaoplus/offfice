@@ -2,7 +2,7 @@ server:
   port: 8080
 office:
   filesizeMax: 5242880
-  saveRootPath: F:/OnlyOfficeFile
+  saveRootPath: D:/OnlyOfficeFile
   storageFolder: app_data
   baseUrl: http://localhost:6831
   docService:
@@ -16,12 +16,12 @@ office:
       tempstorage: ${office.baseUrl}/ResourceService.ashx
       api: ${office.baseUrl}/web-apps/apps/api/documents/api.js
       preloader: ${office.baseUrl}/web-apps/apps/api/documents/cache-scripts.html
-      callbackServer: http://192.168.26.1:8080/callback/office  #给onlyoffice提供回调接口，同步保存文件
+      callbackServer: http://192.168.170.113:8080/callback/office  #给onlyoffice提供回调接口，同步保存文件
 logging:
   level:
     root: debug
 ftp:
-  open: true
+  open: false
   host: 192.168.26.1
   port: 21
   username: lingxiao
@@ -34,8 +34,9 @@ spring:
       max-file-size: 50MB
       max-request-size: 100MB
 oss:
-  accessKey: V_ZleIlYzHPjekmAuRvV_MDkk69VZWM12f # 设置好账号的ACCESS_KEY和SECRET_KEY
-  secretKey: U8SndxcceqMZGIKPL3gEPkYRNrP75cJlOH
+  open: true
+  accessKey: V_ZleIlYzHPjekmAuRvDkkM12f # 设置好账号的ACCESS_KEY和SECRET_KEY
+  secretKey: U8SndxcceqMZGIKvhfPL3grP75cJlOH
   bucketName: function  # 要上传的UrlAccessDecisionManager空间
-  prefixImg: http://img.liniao.top/
-  rootPath: /OnlyOffice
+  prefixImg: http://img.liz.top/
+  rootPath: /OnlyOffice/temp

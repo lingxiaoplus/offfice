@@ -65,7 +65,7 @@ public class FileController {
                                  @RequestParam(value = "fileUrl") String fileUrl,
                                  @RequestParam(value = "editable",defaultValue = "true") boolean editable){
         ModelAndView modelAndView = new ModelAndView("editor");
-        FileModel fileModel = fileService.editFile(fileName,fileUrl);
+        FileModel fileModel = fileService.createFileModel(fileName,fileUrl);
         fileModel.getEditorConfig().editable = editable;
         modelAndView.addObject("file",fileModel);
         modelAndView.addObject("docserviceApiUrl",officeConfigure.getDocService().getUrl().getApi());

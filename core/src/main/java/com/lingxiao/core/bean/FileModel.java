@@ -31,7 +31,7 @@ public class FileModel {
         map.put("documentType", documentType);
         map.put("document", document);
         map.put("editorConfig", editorConfig);
-        token = documentManager.CreateToken(map);
+        token = documentManager.createToken(map);
     }
 
     public static class Document {

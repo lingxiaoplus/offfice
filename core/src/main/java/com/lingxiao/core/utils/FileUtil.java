@@ -8,7 +8,11 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.stereotype.Component;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.net.URL;
+import java.nio.channels.FileChannel;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
@@ -79,23 +83,19 @@ public class FileUtil {
         }
         //for external file url
         String tempstorage = officeConfigure.getDocService().getUrl().getTempstorage();
-        if (!tempstorage.isEmpty() && url.startsWith(tempstorage))
-        {
+        if (!tempstorage.isEmpty() && url.startsWith(tempstorage)) {
             Map<String, String> params = GetUrlParams(url);
             return params == null ? null : params.get("filename");
         }
-
-        String fileName = url.substring(url.lastIndexOf('/') + 1, url.length());
-        return fileName;
+        return url.substring(url.lastIndexOf('/') + 1, url.length());
     }
 
     public String getFileNameWithoutExtension(String url) {
         String fileName = getFileName(url);
-        if (fileName == null){
-            return null;
+        if (StringUtils.isBlank(fileName)){
+            return "";
         }
-        String fileNameWithoutExt = fileName.substring(0, fileName.lastIndexOf('.'));
-        return fileNameWithoutExt;
+        return fileName.substring(0, fileName.lastIndexOf('.'));
     }
 
     /**
@@ -150,5 +150,32 @@ public class FileUtil {
             e.printStackTrace();
             return dateFormat.format(new Date(file.lastModified()));
         }
+    }
+
+    /**
+     * nio的方式复制文件
+     * @param srcPath 源文件
+     * @param targetPath 目标文件
+     */
+    public boolean copyFile(File srcPath,File targetPath){
+        if (!srcPath.exists()){
+            return false;
+        }
+        if (!targetPath.exists()){
+            try {
+                Files.createFile(targetPath.toPath());
+            } catch (IOException exception) {
+                exception.printStackTrace();
+                return false;
+            }
+        }
+        try (FileChannel inChannel = new FileInputStream(srcPath).getChannel();
+             FileChannel outChannel = new FileOutputStream(targetPath).getChannel();){
+            inChannel.transferTo(0, inChannel.size(), outChannel);
+        }catch (IOException e){
+            e.printStackTrace();
+            return false;
+        }
+        return true;
     }
 }

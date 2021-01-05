@@ -13,6 +13,9 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.channels.Channels;
+import java.nio.channels.FileChannel;
+import java.nio.channels.ReadableByteChannel;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -28,30 +31,30 @@ public class HttpUtil {
     private Headers headers;
 
     @PostConstruct
-    private void init(){
+    private void init() {
         OkHttpClient.Builder builder = new OkHttpClient.Builder();
         client = builder.connectTimeout(officeConfigure.getDocService().getTimeout(), TimeUnit.MILLISECONDS).build();
     }
 
-    public HttpUtil addHeader(Map<String,String> headerMap){
+    public HttpUtil addHeader(Map<String, String> headerMap) {
         Headers.Builder builder = new Headers.Builder();
-        headerMap.forEach((key,value)-> builder.add(key,value));
+        headerMap.forEach((key, value) -> builder.add(key, value));
         headers = builder.build();
         return this;
     }
 
 
-    public <T> void doPost(String url, T data, ResponseCallback callback){
+    public <T> void doPost(String url, T data, ResponseCallback callback) {
         RequestBody requestBody = RequestBody.create(MediaType.parse("application/json"), JSON.toJSONString(data));
         Request request = null;
-        if (headers != null){
+        if (headers != null) {
             request = new Request
                     .Builder()
                     .url(url)
                     .post(requestBody)
                     .headers(headers)
                     .build();
-        }else {
+        } else {
             request = new Request
                     .Builder()
                     .url(url)
@@ -75,14 +78,14 @@ public class HttpUtil {
     public <T> Response doPost(String url, T data) throws IOException {
         RequestBody requestBody = RequestBody.create(MediaType.parse("application/json"), JSON.toJSONString(data));
         Request request = null;
-        if (headers != null){
+        if (headers != null) {
             request = new Request
                     .Builder()
                     .url(url)
                     .post(requestBody)
                     .headers(headers)
                     .build();
-        }else {
+        } else {
             request = new Request
                     .Builder()
                     .url(url)
@@ -95,6 +98,7 @@ public class HttpUtil {
 
     /**
      * 同步下载文件
+     *
      * @param url
      * @param downloadPath
      * @return
@@ -106,7 +110,7 @@ public class HttpUtil {
                 .build();
         Response response = client.newCall(request).execute();
         ResponseBody responseBody = response.body();
-        if (responseBody == null){
+        if (responseBody == null) {
             throw new IOException("没有response body");
         }
         long total = responseBody.contentLength();
@@ -126,9 +130,41 @@ public class HttpUtil {
         return downloadFile;
     }
 
+
+    /**
+     * 同步下载文件
+     *
+     * @param url
+     * @param downloadPath
+     * @return
+     * @throws IOException
+     */
+    public File downloadFileNio(String url, String downloadPath) throws IOException {
+        Request request = new Request.Builder()
+                .url(url)
+                .build();
+        Response response = client.newCall(request).execute();
+        ResponseBody responseBody = response.body();
+        if (responseBody == null) {
+            throw new IOException("没有response body");
+        }
+        InputStream inputStream = responseBody.byteStream();
+        File downloadFile = new File(downloadPath);
+        try (FileChannel fileChannel = new FileOutputStream(downloadFile).getChannel();
+             ReadableByteChannel readableByteChannel = Channels.newChannel(inputStream);) {
+            fileChannel.transferFrom(readableByteChannel, 0, Long.MAX_VALUE);
+        } catch (IOException e) {
+            throw new IOException(e);
+        }
+        return downloadFile;
+    }
+
+
     private ResponseCallback callback;
+
     public interface ResponseCallback {
         void onSuccess(String reponse);
+
         void onFailure(String message);
     }
 

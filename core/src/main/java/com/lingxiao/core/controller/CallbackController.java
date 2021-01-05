@@ -45,7 +45,7 @@ public class CallbackController {
 
             if (documentManager.tokenEnabled()) {
                 String token = callbackResult.getToken();
-                JWT jwt = documentManager.ReadToken(token);
+                JWT jwt = documentManager.readToken(token);
                 if (jwt == null) {
                     log.error("JWT.parse error");
                     result.put("error",1);

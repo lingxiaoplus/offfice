@@ -14,6 +14,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import com.lingxiao.core.FileType;
 import com.lingxiao.core.bean.OfficeConfigure;
+import com.lingxiao.core.exception.OfficeException;
 import org.primeframework.jwt.domain.JWT;
 import org.primeframework.jwt.hmac.HMACSigner;
 import org.primeframework.jwt.hmac.HMACVerifier;
@@ -21,6 +22,8 @@ import org.primeframework.jwt.Signer;
 import org.primeframework.jwt.Verifier;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Component;
 
 /**
@@ -34,45 +37,35 @@ public class DocumentManager {
     @Autowired
     private FileUtil fileUtil;
     @Autowired
-    private HttpServletRequest request;
+    private ResourceLoader resourceLoader;
 
-    public long getMaxFileSize() {
-        long size = officeConfigure.getFilesizeMax();
-        return size > 0 ? size : 5 * 1024 * 1024;
+    public boolean fileOverLoad(long fileSize) {
+        long maxSize = officeConfigure.getFilesizeMax();
+        maxSize = maxSize > 0 ? maxSize : 5 * 1024 * 1024;
+        return maxSize < fileSize;
     }
 
     public List<String> getFileExts() {
         List<String> res = new ArrayList<>();
-        res.addAll(getViewedExts());
-        res.addAll(getEditedExts());
-        res.addAll(getConvertExts());
+        res.addAll(getViewedSuffixes());
+        res.addAll(getEditedSuffixes());
+        res.addAll(getConvertSuffixes());
         return res;
     }
 
-    public List<String> getViewedExts() {
+    public List<String> getViewedSuffixes() {
         String exts = officeConfigure.getDocService().getViewedDocs();
         return Arrays.asList(exts.split("\\|"));
     }
 
-    public List<String> getEditedExts() {
+    public List<String> getEditedSuffixes() {
         String exts = officeConfigure.getDocService().getEditedDocs();
         return Arrays.asList(exts.split("\\|"));
     }
 
-    public List<String> getConvertExts() {
+    public List<String> getConvertSuffixes() {
         String exts = officeConfigure.getDocService().getConvertDocs();
         return Arrays.asList(exts.split("\\|"));
-    }
-
-    public String CurUserHostAddress(String userAddress) {
-        if(userAddress == null) {
-            try {
-                userAddress = InetAddress.getLocalHost().getHostAddress();
-            } catch (Exception ex) {
-                userAddress = "";
-            }
-        }
-        return userAddress.replaceAll("[^0-9a-zA-Z.=]", "_");
     }
 
     public String storagePath(String fileName) {
@@ -104,11 +97,13 @@ public class DocumentManager {
     public File createDemo(String fileExt) throws IOException {
         String demoName = "sample." + fileExt;
         String fileName = getCorrectName(demoName);
-
-        InputStream stream = Thread.currentThread().getContextClassLoader().getResourceAsStream(demoName);
-
         File file = new File(storagePath(fileName));
-
+        Resource resource = resourceLoader.getResource("classpath:sample." + fileExt);
+        boolean copyResult = fileUtil.copyFile(resource.getFile(), file);
+        if (!copyResult){
+            throw new OfficeException("创建demo失败");
+        }
+        /*InputStream stream = Thread.currentThread().getContextClassLoader().getResourceAsStream(demoName);
         try (FileOutputStream out = new FileOutputStream(file)) {
             int read;
             final byte[] bytes = new byte[1024];
@@ -116,14 +111,8 @@ public class DocumentManager {
                 out.write(bytes, 0, read);
             }
             out.flush();
-        }
+        }*/
         return file;
-    }
-
-
-    public String GetServerUrl() {
-        //return request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort() + request.getContextPath();
-        return request.getScheme() + "://" + "172.19.160.1" + ":" + request.getServerPort() + request.getContextPath();
     }
 
     public String getCallbackUrl(String fileName) {
@@ -150,32 +139,29 @@ public class DocumentManager {
         return ".docx";
     }
 
-    public String CreateToken(Map<String, Object> payloadClaims) {
+    public String createToken(Map<String, Object> payloadClaims) {
         try {
             Signer signer = HMACSigner.newSHA256Signer(officeConfigure.getDocService().getSecret());
             JWT jwt = new JWT();
-            for (String key : payloadClaims.keySet())
-            {
+            for (String key : payloadClaims.keySet()) {
                 jwt.addClaim(key, payloadClaims.get(key));
             }
             return JWT.getEncoder().encode(jwt, signer);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             return "";
         }
     }
 
-    public JWT ReadToken(String token) {
+    public JWT readToken(String token) {
         try {
             Verifier verifier = HMACVerifier.newVerifier(officeConfigure.getDocService().getSecret());
             return JWT.getDecoder().decode(token, verifier);
-        }
-        catch (Exception exception) {
+        } catch (Exception exception) {
             return null;
         }
     }
 
-    public Boolean tokenEnabled() {
+    public boolean tokenEnabled() {
         String secret = officeConfigure.getDocService().getSecret();
         return secret != null && !secret.isEmpty();
     }

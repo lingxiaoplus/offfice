@@ -32,6 +32,7 @@ public class FileServiceImpl implements FileService {
     private OssFileService ossFileService;
     @Autowired
     private HttpUtil httpUtil;
+    private final String userId = "user_123456";
 
     public static final String CONVERT_PATH = "/convertedFile";
 
@@ -39,14 +40,15 @@ public class FileServiceImpl implements FileService {
     public ResponseResult<JSONObject> upload(MultipartFile file) {
         String fileName = file.getOriginalFilename();
         long curSize = file.getSize();
-        if (documentManager.getMaxFileSize() < curSize || curSize <= 0) {
+        if (documentManager.fileOverLoad(curSize)) {
             throw new OfficeException("File size is incorrect");
         }
         String curExt = fileUtil.getFileExtension(fileName);
         if (!documentManager.getFileExts().contains(curExt)) {
             throw new OfficeException("File type is not supported");
         }
-        fileName = documentManager.getCorrectName(fileName);
+
+        //fileName = documentManager.getCorrectName(fileName);
         log.info("上传的文件名: {}", fileName);
         String fileStoragePath = documentManager.storagePath(fileName);
         File saveTempFile = new File(fileStoragePath);
@@ -77,7 +79,7 @@ public class FileServiceImpl implements FileService {
         String fileExt = fileUtil.getFileExtension(fileName);
         FileType fileType = fileUtil.getFileType(fileName);
         String internalFileExt = DocumentManager.getInternalExtension(fileType);
-        if (documentManager.getViewedExts().contains(fileExt)){
+        if (documentManager.getViewedSuffixes().contains(fileExt)){
             ConvertResult convertResult = new ConvertResult();
             convertResult.setFileUrl(fileUrl);
             convertResult.setFileName(fileName);
@@ -85,7 +87,7 @@ public class FileServiceImpl implements FileService {
             convertResult.setEndConvert(true);
             return ResponseResult.ok(convertResult);
         }
-        if (!documentManager.getConvertExts().contains(fileExt)) {
+        if (!documentManager.getConvertSuffixes().contains(fileExt)) {
             throw new OfficeException("不支持的文件格式: "+ fileExt);
         }
         log.debug("开始文件转换: {}",fileUrl);
@@ -118,7 +120,7 @@ public class FileServiceImpl implements FileService {
             OssFileInfo ossFileInfo = ossFileService.uploadFile(newFile);
             String fileUrl = ossFileInfo.getPath();
             String fileName = newFile.getName();
-            return editFile(fileName,fileUrl);
+            return createFileModel(fileName,fileUrl);
         } catch (IOException ex) {
             ex.printStackTrace();
             throw new OfficeException(ex.getMessage());
@@ -126,7 +128,7 @@ public class FileServiceImpl implements FileService {
     }
 
     @Override
-    public FileModel editFile(String fileName,String fileUrl){
+    public FileModel createFileModel(String fileName,String fileUrl){
         if (StringUtils.isBlank(fileUrl)){
             throw new OfficeException("获取文件地址失败, 文件名：" + fileName);
         }
@@ -134,22 +136,22 @@ public class FileServiceImpl implements FileService {
         document.title = fileName;
         document.url = fileUrl;
         document.fileType = fileUtil.getFileExtension(fileName).replace(".", "");
-        String userId = documentManager.CurUserHostAddress(null);
-        document.key = serviceConverter.GenerateRevisionId( document.url);
+        //String userId = documentManager.CurUserHostAddress(null);
+        document.key = serviceConverter.GenerateRevisionId(document.url);
 
         FileModel.EditorConfig editorConfig = new FileModel.EditorConfig();
-        if (!documentManager.getEditedExts().contains(fileUtil.getFileExtension(fileName))){
+        if (!documentManager.getEditedSuffixes().contains(fileUtil.getFileExtension(fileName))){
             editorConfig.mode = "view";
         }
+        //出现无法保存相关的报错，先看一下回调路径是否设置正确
         editorConfig.callbackUrl = documentManager.getCallbackUrl(fileName);
         editorConfig.user.id = userId;
-        editorConfig.customization.goback.url = documentManager.GetServerUrl() + "/IndexServlet";
+        //editorConfig.customization.goback.url = documentManager.getServerUrl() + "/IndexServlet";
 
         FileModel fileModel = new FileModel();
         fileModel.setDocumentType(fileUtil.getFileType(fileName.trim()).toString().toLowerCase());
         fileModel.setDocument(document);
         fileModel.setEditorConfig(editorConfig);
-
         //在内置窗口中打开还是新页面
         /*if ("embedded".equals(mode)) {
             fileModel.InitDesktop();
@@ -157,8 +159,6 @@ public class FileServiceImpl implements FileService {
         if ("view".equals(mode)) {
             fileModel.getEditorConfig().mode = "view";
         }*/
-
-        fileModel.getEditorConfig().mode = "view";
         if (documentManager.tokenEnabled()) {
             fileModel.buildToken(documentManager);
         }

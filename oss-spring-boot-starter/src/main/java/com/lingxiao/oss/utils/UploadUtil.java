@@ -45,7 +45,7 @@ public class UploadUtil {
      * @return 返回图片链接
      */
     public OssFileInfo upload(File file) throws QiniuException{
-        return upload(file,ossProperties.getRootPath());
+        return upload(file,"/");
     }
 
     /**
@@ -60,8 +60,10 @@ public class UploadUtil {
         if (StringUtils.isNotBlank(ossProperties.getRootPath())){
             folder = ossProperties.getRootPath() + folder;
         }
+        String concatPath = folder.concat("/").concat(file.getName());
+        log.info("上传的路径: {}",concatPath);
         //调用put方法上传
-        Response res = uploadManager.put(file.getPath(), folder.concat("/").concat(file.getName()), getUpToken(mAuth));
+        Response res = uploadManager.put(file.getPath(), concatPath, getUpToken(mAuth));
         //打印返回的信息
         log.debug("文件上传返回信息: {}",res.bodyString());
         StringMap jsonToMap = res.jsonToMap();
