@@ -2,39 +2,30 @@ package com.lingxiao.core.utils;
 
 import com.alibaba.fastjson.JSON;
 import com.lingxiao.core.bean.ConvertResult;
-import com.lingxiao.core.bean.OfficeConfigure;
 import com.lingxiao.core.exception.OfficeException;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.stereotype.Component;
-
-import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+/**
+ * @author  lingxiao
+ * @date 2021-01-06
+ */
 @Component
 @Slf4j
-@EnableConfigurationProperties(value = OfficeConfigure.class)
 public class ServiceConverter {
-    @Autowired
-    private OfficeConfigure officeConfigure;
     @Autowired
     private FileUtil fileUtil;
     @Autowired
     private DocumentManager documentManager;
-    private String DocumentConverterUrl;
     @Autowired
     private HttpUtil httpUtil;
-
-    @PostConstruct
-    public void init(){
-        DocumentConverterUrl = officeConfigure.getDocService().getUrl().getConverter();
-    }
 
     @Data
     public static class ConvertBody {
@@ -55,7 +46,7 @@ public class ServiceConverter {
 
         documentRevisionId = documentRevisionId == null || documentRevisionId.isEmpty() ? documentUri : documentRevisionId;
 
-        documentRevisionId = GenerateRevisionId(documentRevisionId);
+        documentRevisionId = generateRevisionId(documentRevisionId);
 
         ConvertBody body = new ConvertBody();
         body.url = documentUri;
@@ -66,17 +57,17 @@ public class ServiceConverter {
         body.async = isAsync;
 
         log.info("convert参数: {}",JSON.toJSONString(body));
-        Map<String,String> headerMap = new HashMap<>();
+        Map<String,String> headerMap = new HashMap<>(2);
         if (documentManager.tokenEnabled()) {
-            Map<String, Object> map = new HashMap<>();
+            Map<String, Object> map = new HashMap<>(1);
             map.put("payload", body);
             String token = documentManager.createToken(map);
             headerMap.put("Authorization","Bearer " + token);
         }
         headerMap.put("Accept", "application/json");
         try {
-            Response response = httpUtil.addHeader(headerMap).doPost(DocumentConverterUrl, body);
-            if (response.isSuccessful()){
+            Response response = httpUtil.addHeader(headerMap).doPost(documentManager.getConvertUrl(), body);
+            if (response.isSuccessful() && response.body() != null){
                 return getResponseUri(title,response.body().string());
             }else {
                 log.info("请求office转换服务失败, {}",response.code());
@@ -88,7 +79,7 @@ public class ServiceConverter {
         }
     }
 
-    public String GenerateRevisionId(String expectedKey) {
+    public String generateRevisionId(String expectedKey) {
         if (expectedKey.length() > 20){
             expectedKey = Integer.toString(expectedKey.hashCode());
         }
@@ -141,7 +132,7 @@ public class ServiceConverter {
         if (convertResponse.getError() != null){
             processConvertServiceResponseError(convertResponse.getError());
         }
-        if (convertResponse.getEndConvert()) {
+        if (Boolean.TRUE.equals(convertResponse.getEndConvert())) {
             convertResponse.setProgress(100);
         }
         return convertResponse;

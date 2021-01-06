@@ -30,7 +30,7 @@ public class FtpFileServiceImpl implements OssFileService {
 
     @Override
     public OssFileInfo uploadFile(File file) {
-        String fileUrl = FtpUtil.getInstance(ftpConfigure).uploadFile(file.getAbsolutePath(), ftpConfigure.getUploadPath());
+        String fileUrl = FtpUtil.getInstance(ftpConfigure).uploadFile(file.getAbsolutePath(), ftpConfigure.getRootPath());
         OssFileInfo ossFileInfo = new OssFileInfo();
         ossFileInfo.setTime(new SimpleDateFormat("yyyy-MM-dd").format(new Date()));
         ossFileInfo.setName(file.getName());
@@ -44,7 +44,7 @@ public class FtpFileServiceImpl implements OssFileService {
         if (convert){
             FtpUtil.getInstance(ftpConfigure).deleteByFolder(folder.concat("/").concat(file.getName()));
         }
-        String fileUrl = FtpUtil.getInstance(ftpConfigure).uploadFile(file.getAbsolutePath(), ftpConfigure.getUploadPath().concat("/").concat(folder));
+        String fileUrl = FtpUtil.getInstance(ftpConfigure).uploadFile(file.getAbsolutePath(), ftpConfigure.getRootPath().concat("/").concat(folder));
         OssFileInfo ossFileInfo = new OssFileInfo();
         ossFileInfo.setTime(new SimpleDateFormat("yyyy-MM-dd").format(new Date()));
         ossFileInfo.setName(file.getName());
@@ -69,7 +69,7 @@ public class FtpFileServiceImpl implements OssFileService {
     @Override
     public PageResult<OssFileInfo> getFileList(String filePrefix, int pageNum, int pageSize) {
          List<OssFileInfo> fileInfoList = new ArrayList<>();
-        FtpUtil.getInstance(ftpConfigure).readFileByFolder(ftpConfigure.getUploadPath().concat("/").concat(filePrefix), fileInfoList);
+        FtpUtil.getInstance(ftpConfigure).readFileByFolder(ftpConfigure.getRootPath().concat("/").concat(filePrefix), fileInfoList);
         return new PageResult<>(fileInfoList.size(),1,fileInfoList);
     }
 

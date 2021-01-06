@@ -10,6 +10,7 @@ import org.apache.commons.net.ftp.FTPReply;
 
 import java.io.*;
 import java.net.SocketException;
+import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.List;
@@ -186,6 +187,7 @@ public class FtpUtil {
          // 设置PassiveMode传输  
             ftpClient.enterLocalPassiveMode();
             //设置二进制传输，使用BINARY_FILE_TYPE，ASC容易造成文件损坏
+            ftpClient.setControlEncoding(StandardCharsets.UTF_8.name());
             ftpClient.setFileType(FTPClient.BINARY_FILE_TYPE);
             //判断FPT目标文件夹时候存在不存在则创建
             if(!ftpClient.changeWorkingDirectory(ftpPath)){
@@ -197,7 +199,7 @@ public class FtpUtil {
             //上传文件
             File file = new File(filePath);
             try (InputStream in = new FileInputStream(file)){
-                String tempName = ftpPath+File.separator+file.getName();
+                String tempName = ftpPath+"/"+file.getName();
                 boolean flag = ftpClient.storeFile(new String (tempName.getBytes(StandardCharsets.UTF_8),StandardCharsets.ISO_8859_1),in);
                 if(flag){
                     log.info("上传成功");
@@ -377,7 +379,7 @@ public class FtpUtil {
             }
         } catch (IOException e) {
             e.printStackTrace();
-            log.error("文件解析失败");
+            log.error("文件解析失败: {}",e.getMessage());
         }
     }
 

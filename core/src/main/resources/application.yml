@@ -21,20 +21,20 @@ logging:
   level:
     root: debug
 ftp:
-  open: false
-  host: 192.168.26.1
+  open: true
+  host: 10.138.24.224
   port: 21
   username: lingxiao
   password: 12345678
   baseUrl: http://file.lingxiao.com  # 文件地址前缀
-  uploadPath: "/temp"
+  rootPath: "/temp"
 spring:
   servlet:
     multipart:
       max-file-size: 50MB
       max-request-size: 100MB
 oss:
-  open: true
+  open: false
   accessKey: V_ZleIlYzHPjekmAuRvDkkM12f # 设置好账号的ACCESS_KEY和SECRET_KEY
   secretKey: U8SndxcceqMZGIKvhfPL3grP75cJlOH
   bucketName: function  # 要上传的UrlAccessDecisionManager空间

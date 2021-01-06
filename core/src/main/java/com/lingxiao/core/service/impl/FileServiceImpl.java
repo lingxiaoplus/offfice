@@ -44,7 +44,7 @@ public class FileServiceImpl implements FileService {
             throw new OfficeException("File size is incorrect");
         }
         String curExt = fileUtil.getFileExtension(fileName);
-        if (!documentManager.getFileExts().contains(curExt)) {
+        if (!documentManager.getFileSuffixes().contains(curExt)) {
             throw new OfficeException("File type is not supported");
         }
 
@@ -91,7 +91,7 @@ public class FileServiceImpl implements FileService {
             throw new OfficeException("不支持的文件格式: "+ fileExt);
         }
         log.debug("开始文件转换: {}",fileUrl);
-        String key = serviceConverter.GenerateRevisionId(fileUrl);
+        String key = serviceConverter.generateRevisionId(fileUrl);
         ConvertResult convertResult = serviceConverter.getConvertedUri(fileUrl, fileExt, internalFileExt, key, true);
         if (!convertResult.getEndConvert()) {
             //没有转换完成
@@ -137,7 +137,7 @@ public class FileServiceImpl implements FileService {
         document.url = fileUrl;
         document.fileType = fileUtil.getFileExtension(fileName).replace(".", "");
         //String userId = documentManager.CurUserHostAddress(null);
-        document.key = serviceConverter.GenerateRevisionId(document.url);
+        document.key = serviceConverter.generateRevisionId(document.url);
 
         FileModel.EditorConfig editorConfig = new FileModel.EditorConfig();
         if (!documentManager.getEditedSuffixes().contains(fileUtil.getFileExtension(fileName))){

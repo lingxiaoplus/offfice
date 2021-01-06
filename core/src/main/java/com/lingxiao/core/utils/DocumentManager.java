@@ -39,13 +39,17 @@ public class DocumentManager {
     @Autowired
     private ResourceLoader resourceLoader;
 
+    public String getConvertUrl(){
+        return officeConfigure.getDocService().getUrl().getConverter();
+    }
+
     public boolean fileOverLoad(long fileSize) {
         long maxSize = officeConfigure.getFilesizeMax();
         maxSize = maxSize > 0 ? maxSize : 5 * 1024 * 1024;
         return maxSize < fileSize;
     }
 
-    public List<String> getFileExts() {
+    public List<String> getFileSuffixes() {
         List<String> res = new ArrayList<>();
         res.addAll(getViewedSuffixes());
         res.addAll(getEditedSuffixes());
