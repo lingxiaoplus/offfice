@@ -3,7 +3,6 @@ server:
 office:
   filesizeMax: 5242880
   saveRootPath: D:/OnlyOfficeFile
-  storageFolder: app_data
   baseUrl: http://localhost:6831
   docService:
     viewedDocs: .pdf|.djvu|.xps
@@ -21,7 +20,6 @@ logging:
   level:
     root: debug
 ftp:
-  open: true
   host: 10.138.24.224
   port: 21
   username: lingxiao
@@ -34,9 +32,9 @@ spring:
       max-file-size: 50MB
       max-request-size: 100MB
 oss:
-  open: false
-  accessKey: V_ZleIlYzHPjekmAuRvDkkM12f # 设置好账号的ACCESS_KEY和SECRET_KEY
-  secretKey: U8SndxcceqMZGIKvhfPL3grP75cJlOH
-  bucketName: function  # 要上传的UrlAccessDecisionManager空间
-  prefixImg: http://img.liz.top/
-  rootPath: /OnlyOffice/temp
+  type: minio
+  accessKey: admin # 设置好账号的ACCESS_KEY和SECRET_KEY
+  secretKey: admin123456
+  bucketName: office  # 要上传的UrlAccessDecisionManager空间
+  prefixDomain: http://localhost:9000/
+  rootPath: /onlyOffice

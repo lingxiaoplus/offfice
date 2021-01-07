@@ -68,7 +68,7 @@ public class UploadUtil {
         log.debug("文件上传返回信息: {}",res.bodyString());
         StringMap jsonToMap = res.jsonToMap();
         String key = (String) jsonToMap.get("key");
-        String url = ossProperties.getPrefixImg() + key;
+        String url = ossProperties.getPrefixDomain() + key;
         OssFileInfo fileInfo = new OssFileInfo();
         fileInfo.setName(key);
         fileInfo.setPath(url);
@@ -96,7 +96,7 @@ public class UploadUtil {
         log.debug("文件上传返回信息: {}",res.bodyString());
         StringMap jsonToMap = res.jsonToMap();
         String key = (String) jsonToMap.get("key");
-        String url = ossProperties.getPrefixImg() + key;
+        String url = ossProperties.getPrefixDomain() + key;
         OssFileInfo fileInfo = new OssFileInfo();
         fileInfo.setName(key);
         fileInfo.setPath(url);
@@ -199,7 +199,7 @@ public class UploadUtil {
                                 }
                                 fileInfo.setName(name);
                                 fileInfo.setMimeType(item.mimeType);
-                                fileInfo.setPath(ossProperties.getPrefixImg() + item.key);
+                                fileInfo.setPath(ossProperties.getPrefixDomain() + item.key);
                                 fileInfo.setEndUser(item.endUser);
                                 fileInfo.setSize(FileUtil.getFileSize(item.fsize));
                                 DateTime dateTime = new DateTime(item.putTime/10000);

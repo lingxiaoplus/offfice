@@ -12,7 +12,6 @@ import lombok.Data;
 @Data
 public class OfficeConfigure {
     private long filesizeMax;
-    private String storageFolder;
     private String saveRootPath;
     private DocService docService = new DocService();
 

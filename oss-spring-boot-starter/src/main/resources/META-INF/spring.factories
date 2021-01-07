@@ -1,2 +1,2 @@
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-  com.lingxiao.oss.OssConfig,com.lingxiao.oss.FtpConfig
+  com.lingxiao.oss.OssConfig,com.lingxiao.oss.FtpConfig,com.lingxiao.oss.MinIoConfig

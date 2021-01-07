@@ -44,5 +44,10 @@
 			<artifactId>commons-net</artifactId>
 			<version>3.6</version>
 		</dependency>
+		<dependency>
+			<groupId>io.minio</groupId>
+			<artifactId>minio</artifactId>
+			<version>3.0.10</version>
+		</dependency>
 	</dependencies>
 </project>

@@ -14,7 +14,7 @@ public class OssProperties {
     private String accessKey;
     private String secretKey;
     private String bucketName;
-    private String prefixImg;
+    private String prefixDomain;
     private String temporaryFolder;
     private String rootPath;
 }

@@ -1,8 +1,9 @@
 package com.lingxiao.oss;
 
-import com.lingxiao.oss.bean.FtpConfigure;
+import com.lingxiao.oss.bean.MinIoConfigure;
+import com.lingxiao.oss.bean.OssProperties;
 import com.lingxiao.oss.service.OssFileService;
-import com.lingxiao.oss.service.impl.FtpFileServiceImpl;
+import com.lingxiao.oss.service.impl.MinIoFileServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -10,17 +11,18 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * @author Admin
+ * @author renml
+ * @date 2021/1/7 17:43
  */
+@EnableConfigurationProperties(OssProperties.class)
+@ConditionalOnProperty(prefix = "oss", name = "type", havingValue = "minio")
 @Configuration
-@EnableConfigurationProperties(FtpConfigure.class)
-@ConditionalOnProperty(prefix = "oss", name = "type", havingValue = "ftp")
-public class FtpConfig {
+public class MinIoConfig {
     @Autowired
-    private FtpConfigure ftpConfigure;
+    private OssProperties minIoConfigure;
 
     @Bean
     public OssFileService fileService(){
-        return new FtpFileServiceImpl(ftpConfigure);
+        return new MinIoFileServiceImpl(minIoConfigure);
     }
 }
