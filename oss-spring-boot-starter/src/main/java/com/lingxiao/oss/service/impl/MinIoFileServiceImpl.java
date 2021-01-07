@@ -11,6 +11,7 @@ import io.minio.MinioClient;
 import io.minio.Result;
 import io.minio.errors.*;
 import io.minio.messages.Item;
+import io.minio.policy.PolicyType;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
@@ -42,6 +43,7 @@ public class MinIoFileServiceImpl implements OssFileService {
 
     private void createBucket(String bucketName){
         // 检查存储桶是否已经存在
+
         try {
             boolean isExist = minioClient.bucketExists(bucketName);
             if(isExist) {
@@ -49,6 +51,7 @@ public class MinIoFileServiceImpl implements OssFileService {
             } else {
                 // 创建一个名为asiatrip的存储桶，用于存储照片的zip文件。
                 minioClient.makeBucket(bucketName);
+                minioClient.setBucketPolicy(bucketName,"", PolicyType.READ_WRITE);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -105,7 +108,8 @@ public class MinIoFileServiceImpl implements OssFileService {
                 ossFileInfo.setName(item.objectName());
                 ossFileInfo.setTime(new SimpleDateFormat("yyyy-MM-dd").format(item.lastModified()));
                 ossFileInfo.setSize(FileUtil.getFileSize(item.size()));
-                ossFileInfo.setPath(minIoConfigure.getPrefixDomain().concat("/").concat(item.objectName()));
+                ossFileInfo.setPath(minioClient.getObjectUrl(minIoConfigure.getBucketName(),item.objectName()));
+                //ossFileInfo.setPath("http://172.17.0.3:9000/office/1.xls");
                 fileList.add(ossFileInfo);
             }
             return new PageResult<>(fileList.size(),1,fileList);
