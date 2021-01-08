@@ -15,7 +15,7 @@ office:
       tempstorage: ${office.baseUrl}/ResourceService.ashx
       api: ${office.baseUrl}/web-apps/apps/api/documents/api.js
       preloader: ${office.baseUrl}/web-apps/apps/api/documents/cache-scripts.html
-      callbackServer: http://192.168.170.113:8080/callback/office  #给onlyoffice提供回调接口，同步保存文件
+      callbackServer: http://10.138.24.224:8080/callback/office  #给onlyoffice提供回调接口，同步保存文件
 logging:
   level:
     root: debug
@@ -36,5 +36,5 @@ oss:
   accessKey: admin # 设置好账号的ACCESS_KEY和SECRET_KEY
   secretKey: admin123456
   bucketName: office  # 要上传的UrlAccessDecisionManager空间
-  prefixDomain: http://localhost:9000/
+  prefixDomain: http://oss.lingxiaomz.top
   rootPath: /onlyOffice

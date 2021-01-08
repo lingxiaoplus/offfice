@@ -73,4 +73,12 @@ class OfficeApplicationTests {
 
         return StringUtils.reverse(result.toString());
     }
+
+
+    @Test
+    void regexTest(){
+        String path = "http://172.17.0.3:9000/";
+        String replace = StringUtils.replace(path, "http://localhost:9000", "http://172.17.0.3:9000");
+        log.info("转换过后的: {}",replace);
+    }
 }

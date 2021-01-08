@@ -57,7 +57,7 @@
                         if (response.data.code !== 200){
                             layer.msg('convert失败：' + response.data.message);
                         }else{
-                            layer.msg('convert成功: ' + response.data.data);
+                            layer.msg('convert进度: ' + response.data.data.progress);
                             if (response.data.data.progress !== 100){
                                 checkConvert(fileName,fileUrl);
                             }else{
@@ -65,7 +65,8 @@
                                 let convertName = response.data.data.fileName;
                                 layer.confirm('是否跳转查看', function(index){
                                     let tempwindow = window.open('_blank');
-                                    tempwindow.location.href = "file/edit?fileName=" + convertName + "&fileUrl=" + convertUrl;
+                                    let uri = encodeURI("file/edit?fileName=" + convertName + "&fileUrl=" + convertUrl);
+                                    tempwindow.location.href = uri;
                                     layer.close(index);
                                 });
 

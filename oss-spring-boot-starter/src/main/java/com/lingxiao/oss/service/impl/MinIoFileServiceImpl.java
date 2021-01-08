@@ -74,7 +74,7 @@ public class MinIoFileServiceImpl implements OssFileService {
             ossFileInfo.setBucket(minIoConfigure.getBucketName());
             ossFileInfo.setTime(new SimpleDateFormat("yyyy-MM-dd").format(new Date()));
             ossFileInfo.setName(file.getName());
-            ossFileInfo.setPath(minIoConfigure.getPrefixDomain().concat("/").concat(file.getName()));
+            ossFileInfo.setPath(minioClient.getObjectUrl(minIoConfigure.getBucketName(),file.getName()));
             return ossFileInfo;
         } catch (Exception e) {
             e.printStackTrace();

@@ -89,13 +89,12 @@ public class DocumentManager {
     public String getCorrectName(String fileName) {
         String baseName = fileUtil.getFileNameWithoutExtension(fileName);
         String ext = fileUtil.getFileExtension(fileName);
-        String name = baseName + ext;
-        File file = new File(storagePath(name));
+        /*File file = new File(storagePath(name));
         for (int i = 1; file.exists(); i++) {
             name = baseName + " (" + i + ")" + ext;
             file = new File(storagePath(name));
-        }
-        return name;
+        }*/
+        return baseName + "_" + System.currentTimeMillis()  + ext;
     }
 
     public File createDemo(String fileExt) throws IOException {
