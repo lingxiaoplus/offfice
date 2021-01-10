@@ -1,13 +1,12 @@
 package com.lingxiao.oss.service.impl;
 
 import com.lingxiao.oss.FileException;
-import com.lingxiao.oss.bean.FtpConfigure;
+import com.lingxiao.oss.bean.FtpProperties;
 import com.lingxiao.oss.bean.OssFileInfo;
 import com.lingxiao.oss.bean.PageResult;
 import com.lingxiao.oss.service.OssFileService;
 import com.lingxiao.oss.utils.FileUtil;
 import com.lingxiao.oss.utils.FtpUtil;
-import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.annotation.PreDestroy;
@@ -22,15 +21,15 @@ import java.util.List;
  */
 @Slf4j
 public class FtpFileServiceImpl implements OssFileService {
-    private FtpConfigure ftpConfigure;
+    private FtpProperties ftpProperties;
 
-    public FtpFileServiceImpl(FtpConfigure ftpConfigure) {
-        this.ftpConfigure = ftpConfigure;
+    public FtpFileServiceImpl(FtpProperties ftpProperties) {
+        this.ftpProperties = ftpProperties;
     }
 
     @Override
     public OssFileInfo uploadFile(File file) {
-        String fileUrl = FtpUtil.getInstance(ftpConfigure).uploadFile(file.getAbsolutePath(), ftpConfigure.getRootPath());
+        String fileUrl = FtpUtil.getInstance(ftpProperties).uploadFile(file.getAbsolutePath(), ftpProperties.getRootPath());
         OssFileInfo ossFileInfo = new OssFileInfo();
         ossFileInfo.setTime(new SimpleDateFormat("yyyy-MM-dd").format(new Date()));
         ossFileInfo.setName(file.getName());
@@ -42,9 +41,9 @@ public class FtpFileServiceImpl implements OssFileService {
     @Override
     public OssFileInfo uploadFile(File file, String folder, boolean convert) {
         if (convert){
-            FtpUtil.getInstance(ftpConfigure).deleteByFolder(folder.concat("/").concat(file.getName()));
+            FtpUtil.getInstance(ftpProperties).deleteByFolder(folder.concat("/").concat(file.getName()));
         }
-        String fileUrl = FtpUtil.getInstance(ftpConfigure).uploadFile(file.getAbsolutePath(), ftpConfigure.getRootPath().concat("/").concat(folder));
+        String fileUrl = FtpUtil.getInstance(ftpProperties).uploadFile(file.getAbsolutePath(), ftpProperties.getRootPath().concat("/").concat(folder));
         OssFileInfo ossFileInfo = new OssFileInfo();
         ossFileInfo.setTime(new SimpleDateFormat("yyyy-MM-dd").format(new Date()));
         ossFileInfo.setName(file.getName());
@@ -55,7 +54,7 @@ public class FtpFileServiceImpl implements OssFileService {
 
     @Override
     public void deleteFile(String fileName) {
-        if(!FtpUtil.getInstance(ftpConfigure).deleteByFolder(fileName)){
+        if(!FtpUtil.getInstance(ftpProperties).deleteByFolder(fileName)){
             log.error("删除失败");
             throw new FileException("删除失败");
         }
@@ -69,7 +68,7 @@ public class FtpFileServiceImpl implements OssFileService {
     @Override
     public PageResult<OssFileInfo> getFileList(String filePrefix, int pageNum, int pageSize) {
          List<OssFileInfo> fileInfoList = new ArrayList<>();
-        FtpUtil.getInstance(ftpConfigure).readFileByFolder(ftpConfigure.getRootPath().concat("/").concat(filePrefix), fileInfoList);
+        FtpUtil.getInstance(ftpProperties).readFileByFolder(ftpProperties.getRootPath().concat("/").concat(filePrefix), fileInfoList);
         return new PageResult<>(fileInfoList.size(),1,fileInfoList);
     }
 

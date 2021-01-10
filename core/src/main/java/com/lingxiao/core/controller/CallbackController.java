@@ -41,7 +41,7 @@ public class CallbackController {
             CallbackResult callbackResult = JSON.parseObject(body, CallbackResult.class);
             int status = callbackResult.getStatus();
 
-            log.debug("saveeditedfile, status: {}", status);
+            log.debug("saved edit file, status: {}", status);
 
             if (documentManager.tokenEnabled()) {
                 String token = callbackResult.getToken();

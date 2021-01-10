@@ -1,7 +1,6 @@
 package com.lingxiao.oss.service.impl;
 
 import com.lingxiao.oss.FileException;
-import com.lingxiao.oss.bean.MinIoConfigure;
 import com.lingxiao.oss.bean.OssFileInfo;
 import com.lingxiao.oss.bean.OssProperties;
 import com.lingxiao.oss.bean.PageResult;

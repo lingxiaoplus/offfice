@@ -1,7 +1,7 @@
 package com.lingxiao.oss.utils;
 
 import com.lingxiao.oss.FileException;
-import com.lingxiao.oss.bean.FtpConfigure;
+import com.lingxiao.oss.bean.FtpProperties;
 import com.lingxiao.oss.bean.OssFileInfo;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.net.ftp.FTPClient;
@@ -10,7 +10,6 @@ import org.apache.commons.net.ftp.FTPReply;
 
 import java.io.*;
 import java.net.SocketException;
-import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.List;
@@ -25,10 +24,10 @@ import java.util.List;
 public class FtpUtil {
     private static FtpUtil ftpUtil = new FtpUtil();
     private static FTPClient ftpClient;
-    private static FtpConfigure ftpConfigure;
+    private static FtpProperties ftpProperties;
     private FtpUtil(){}
-    public static FtpUtil getInstance(FtpConfigure configure){
-        ftpConfigure = configure;
+    public static FtpUtil getInstance(FtpProperties configure){
+        ftpProperties = configure;
         if (ftpClient == null){
             ftpClient = ftpUtil.getFTPClient(configure.getHost(), configure.getPort(), configure.getUsername(), configure.getPassword());
         }
@@ -158,7 +157,7 @@ public class FtpUtil {
             for (FTPFile file : files) {
                 // 取得指定文件并下载
                 if (file.getName().equals(fileName)) {
-                    fileUrl = ftpConfigure.getBaseUrl().concat(filePath).concat("/").concat(fileName);
+                    fileUrl = ftpProperties.getBaseUrl().concat(filePath).concat("/").concat(fileName);
                     break;
                 }
                 //判断为文件夹，递归
@@ -203,7 +202,7 @@ public class FtpUtil {
                 boolean flag = ftpClient.storeFile(new String (tempName.getBytes(StandardCharsets.UTF_8),StandardCharsets.ISO_8859_1),in);
                 if(flag){
                     log.info("上传成功");
-                    fileUrl = ftpConfigure.getBaseUrl().concat(ftpPath).concat("/").concat(file.getName());
+                    fileUrl = ftpProperties.getBaseUrl().concat(ftpPath).concat("/").concat(file.getName());
                 }else{
                     log.error("上传失败");
                 }
@@ -367,7 +366,7 @@ public class FtpUtil {
                 if(file.isFile()){
                     OssFileInfo fileInfo = new OssFileInfo();
                     fileInfo.setName(fileName);
-                    fileInfo.setPath(ftpConfigure.getBaseUrl().concat(folderPath).concat(fileName));
+                    fileInfo.setPath(ftpProperties.getBaseUrl().concat(folderPath).concat(fileName));
                     fileInfo.setTime(new SimpleDateFormat("yyyy-MM-dd").format(file.getTimestamp().getTime()));
                     fileInfoList.add(fileInfo);
                 }

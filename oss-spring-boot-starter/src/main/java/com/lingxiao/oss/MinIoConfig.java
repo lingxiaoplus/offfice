@@ -1,6 +1,5 @@
 package com.lingxiao.oss;
 
-import com.lingxiao.oss.bean.MinIoConfigure;
 import com.lingxiao.oss.bean.OssProperties;
 import com.lingxiao.oss.service.OssFileService;
 import com.lingxiao.oss.service.impl.MinIoFileServiceImpl;

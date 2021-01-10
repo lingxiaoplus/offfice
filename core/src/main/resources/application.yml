@@ -2,8 +2,8 @@ server:
   port: 8080
 office:
   filesizeMax: 5242880
-  saveRootPath: D:/OnlyOfficeFile
-  baseUrl: http://localhost:6831
+  saveRootPath: E:/OnlyOfficeFile
+  baseUrl: http://192.168.26.129:6831
   docService:
     viewedDocs: .pdf|.djvu|.xps
     editedDocs: .docx|.xlsx|.csv|.pptx|.txt
@@ -15,7 +15,7 @@ office:
       tempstorage: ${office.baseUrl}/ResourceService.ashx
       api: ${office.baseUrl}/web-apps/apps/api/documents/api.js
       preloader: ${office.baseUrl}/web-apps/apps/api/documents/cache-scripts.html
-      callbackServer: http://10.138.24.224:8080/callback/office  #给onlyoffice提供回调接口，同步保存文件
+      callbackServer: http://192.168.0.105:8080/callback/office  #给onlyoffice提供回调接口，同步保存文件
 logging:
   level:
     root: debug

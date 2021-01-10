@@ -1,6 +1,6 @@
 package com.lingxiao.oss;
 
-import com.lingxiao.oss.bean.FtpConfigure;
+import com.lingxiao.oss.bean.FtpProperties;
 import com.lingxiao.oss.service.OssFileService;
 import com.lingxiao.oss.service.impl.FtpFileServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,14 +13,14 @@ import org.springframework.context.annotation.Configuration;
  * @author Admin
  */
 @Configuration
-@EnableConfigurationProperties(FtpConfigure.class)
+@EnableConfigurationProperties(FtpProperties.class)
 @ConditionalOnProperty(prefix = "oss", name = "type", havingValue = "ftp")
 public class FtpConfig {
     @Autowired
-    private FtpConfigure ftpConfigure;
+    private FtpProperties ftpProperties;
 
     @Bean
     public OssFileService fileService(){
-        return new FtpFileServiceImpl(ftpConfigure);
+        return new FtpFileServiceImpl(ftpProperties);
     }
 }

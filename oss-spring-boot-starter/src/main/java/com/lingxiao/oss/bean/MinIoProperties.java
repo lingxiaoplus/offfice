@@ -9,7 +9,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  */
 @Data
 @ConfigurationProperties(prefix = "minio")
-public class MinIoConfigure {
+public class MinIoProperties {
     private String endpoint;
     private String accessKey;
     private String secretKey;
